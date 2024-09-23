@@ -17,7 +17,7 @@ class ModelConfig:
 
 class TrainingConfig:
     def __init__(self):
-        self.epochs = 2
+        self.epochs = 10
         self.batch_size = 128
         self.lr = 0.0005
         self.drop_rate = 0.5
@@ -30,6 +30,21 @@ class AutoAugmentationConfig:
 
 class OptimizerConfig:
     def __init__(self):
+        '''
+        adam
+        SGD
+        adadelta
+        adagrad
+        adamw
+        sparseadam
+        adamax
+        asgd
+        lbfgs
+        nadam
+        radam
+        rmsprop
+        rprop
+        '''
         self.opt = 'adam'
         self.momentum = 0.8
 
