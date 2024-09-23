@@ -66,7 +66,8 @@ if __name__ == "__main__":
                       scheduler=scheduler, 
                       loss_fn=config.training.loss_fn,
                       epochs=config.training.epochs,
-                      result_path=config.result_path
+                      result_path=config.result_path,
+                      patience=config.training.early_stop_partience
                       )
     
     print('-'*10 + '학습 시작' + '-'*10)
@@ -82,8 +83,3 @@ if __name__ == "__main__":
 
     print()
     print("학습 시간: " + train_time)
-
-    # 테스트 데이터 로드 및 추론
-    test_runner = TestRunner(model,config)
-    test_runner.load_model()
-    test_runner.run_test()
