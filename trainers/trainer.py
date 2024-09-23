@@ -55,7 +55,7 @@ class Trainer:
         total_loss = 0.0
         progress_bar = tqdm(self.val_loader, desc="Validating", leave=False)
         with torch.no_grad():
-            for images, targets in tqdm(self.val_loader, desc="validating", leave=False):
+            for images, targets in progress_bar:
                 images, targets = images.to(self.device), targets.to(self.device)
                 outputs = self.model(images)
                 loss = self.loss_fn(outputs, targets)
