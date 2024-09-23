@@ -19,8 +19,9 @@ class TrainingConfig:
     def __init__(self):
         self.epochs = 10
         self.batch_size = 128
-        self.lr = 0.0005
+        self.lr = 0.001
         self.drop_rate = 0.5
+        self.early_stop_partience = 2
         self.loss_fn = nn.CrossEntropyLoss()
 
 class AutoAugmentationConfig:

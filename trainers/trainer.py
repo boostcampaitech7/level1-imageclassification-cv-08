@@ -4,11 +4,13 @@ import os
 from utils.utils import plot_losses
 from configs.config import Config
 from torch.cuda.amp import autocast, GradScaler
+from utils.utils import EarlyStopping
+from trainers.test_runner import TestRunner
 
 class Trainer:
     def __init__(self, model, device,
                  train_loader, val_loader, scheduler,
-                 optimizer, loss_fn, epochs, result_path):
+                 optimizer, loss_fn, epochs, result_path, patience=7):
         self.model = model
         self.device = device
         self.train_loader = train_loader
@@ -23,6 +25,10 @@ class Trainer:
         self.train_losses = []
         self.val_losses = []
         self.scaler = GradScaler()
+
+        self.early_stopping = EarlyStopping(patience = patience,
+                                            verbose = True,
+                                            result_path = result_path)
 
     def train_epoch(self):
         self.model.train()
@@ -57,25 +63,6 @@ class Trainer:
                 progress_bar.set_postfix(loss=loss.item())
         
         return total_loss / len(self.val_loader)
-    
-    def save_model(self, epoch, loss):
-        config = Config()
-        os.makedirs(self.result_path, exist_ok=True)
-        current_model_path = os.path.join(self.result_path, f'model_epoch_{epoch}_loss_{loss:.3f}')
-
-        self.best_models.append((loss,epoch, current_model_path))
-        self.best_models.sort()
-
-        if len(self.best_models) > 3:
-            _,_,path_to_remove = self.best_models.pop()
-            if os.path.exists(path_to_remove):
-                os.remove(path_to_remove)
-
-        if loss < self.lowest_loss:
-            self.lowest_loss = loss
-            torch.save(self.model.state_dict(),f'{self.result_path}/{config.model.model_name}_{config.training.epochs}_best_model.pt')
-            print(f'모델 저장 및 loss {loss:.5f}')
-            print()
 
     def train(self):
         config = Config()
@@ -89,7 +76,13 @@ class Trainer:
             print(f'epoch {epoch+1}, Train loss: {t_loss:.5f}, Val loss: {v_loss:.5f}')
             self.train_losses.append(t_loss)
             self.val_losses.append(v_loss)
-            self.save_model(epoch, v_loss)
+
+            self.early_stopping(v_loss, self.model, self.epochs)
+
+            if self.early_stopping.early_stop:
+                print('Early Stopping Training stopped')
+                break
+
             if config.scheduler.what_scheduler == 'reduce':
                 self.scheduler.step(v_loss)
             else:
@@ -99,4 +92,11 @@ class Trainer:
                     self.train_losses, 
                     self.val_losses,
                     self.result_path)
+        
+        self.run_test()
+
+    def run_test(self):
+        test_runner = TestRunner(self.model, Config())
+        test_runner.load_model()
+        test_runner.run_test()
 
