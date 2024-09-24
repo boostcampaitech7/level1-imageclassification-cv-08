@@ -8,9 +8,7 @@ class TestRunner:
     def __init__(self, model, config):
         self.model = model
         self.config = config
-        self.transform_selector = TransformSelector(size=config.model.img_size,
-                                                    use_auto=config.auto_augmentation.auto_aug_use,
-                                                    auto_policy=config.auto_augmentation.policy)
+        self.transform_selector = TransformSelector(size=config.model.img_size)
 
     def load_model(self):
         model_path = f"{self.config.result_path}/{self.config.model.model_name}_{self.config.training.epochs}_best_model.pt"
@@ -21,7 +19,7 @@ class TestRunner:
 
         # 테스트 데이터 로드
         test_info = pd.read_csv(self.config.data.test_info_file)
-        test_transform = self.transform_selector.get_transform(is_train=False)
+        test_transform = self.transform_selector.get_transform('original')
         test_loader = create_dataloader(test_info,
                                         self.config.data.test_data_dir,
                                         test_transform,
