@@ -12,24 +12,26 @@ class DataConfig:
 
 class ModelConfig:
     def __init__(self):
-        self.model_name = 'deit_small_distilled_patch16_224'
+        self.model_name = 'resnet152'
         self.pretrained = True
         self.num_classes = 500
         self.img_size = 224
 
 class TrainingConfig:
     def __init__(self):
-        self.epochs = 3
+        self.epochs = 10
         self.batch_size = 256
         self.lr = 0.0005
         self.drop_rate = 0.4
-        self.early_stop_partience = 15
+        self.early_stop_partience = 3
         self.loss_fn = nn.CrossEntropyLoss()
 
-class AutoAugmentationConfig:
+class AugmentationConfig:
     def __init__(self):
         self.auto_aug_use = True
-        self.policy = "IMAGENET"
+        self.auto_policy = "IMAGENET"
+        # self.augmentations = ['cutmix','cutout','mixup', 'shear', 'translate']
+        self.augmentations = ['cutmix']
 
 class OptimizerConfig:
     def __init__(self):
@@ -99,6 +101,6 @@ class Config:
         self.data = DataConfig()
         self.model = ModelConfig()
         self.training = TrainingConfig()
-        self.auto_augmentation = AutoAugmentationConfig()
+        self.augmentation = AugmentationConfig()
         self.optimizer = OptimizerConfig()
         self.scheduler = SchedulerConfig()

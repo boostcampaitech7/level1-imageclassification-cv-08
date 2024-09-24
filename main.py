@@ -29,7 +29,10 @@ if __name__ == "__main__":
     # auto augmentation 적용
     if config.augmentation.auto_aug_use:
         transform = transform_selector.get_transform('auto')
+        valid_transform= transform_selector.get_transform('auto')
+
         train_transform_list.append(transform)
+        valid_transform_list.append(valid_transform)
 
     # 반복문을 통해 config.augmentation.augmentations에서 증강 기법을 받아 transform 생성
     for aug in config.augmentation.augmentations:
