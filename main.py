@@ -1,5 +1,5 @@
 from configs.config import Config
-from data.data_loader import create_dataloader, TransformSelector
+from data.data_loader import create_dataloader, TransformSelector, create_combined_dataloader
 from models.model_selector import ModelSelector
 from trainers.trainer import Trainer
 import pandas as pd
@@ -27,18 +27,17 @@ if __name__ == "__main__":
     train_transform = transform_selector.get_transform(is_train=True)
     val_transform = transform_selector.get_transform(is_train=False)
 
-    # 데이터 로더 생성
-    train_loader = create_dataloader(train_df, 
+    train_loader = create_combined_dataloader(train_df, 
                                      config.data.train_data_dir, 
-                                     train_transform, 
+                                     transform_selector, 
                                      config.training.batch_size, 
                                      shuffle=True)
     
     val_loader = create_dataloader(val_df, 
-                                   config.data.train_data_dir, 
-                                   val_transform, 
-                                   config.training.batch_size, 
-                                   shuffle=False)
+                               config.data.train_data_dir, 
+                               val_transform, 
+                               config.training.batch_size, 
+                               shuffle=False)
     
     # 모델 설정
     model_selector = ModelSelector(config.model.model_name, 

@@ -1,33 +1,35 @@
 import torch
 import torch.nn as nn
+from trainers.loss import FocalLoss
 
 class DataConfig:
     def __init__(self):
-        self.train_data_dir = "./data/train"
+        self.train_data_dir = "./data/train" 
         self.train_info_file = "./data/train.csv"
+
         self.test_data_dir = "./data/test"
         self.test_info_file = "./data/test.csv"
 
 class ModelConfig:
     def __init__(self):
-        self.model_name = 'resnet152'
+        self.model_name = 'deit_small_distilled_patch16_224'
         self.pretrained = True
         self.num_classes = 500
         self.img_size = 224
 
 class TrainingConfig:
     def __init__(self):
-        self.epochs = 10
-        self.batch_size = 128
-        self.lr = 0.001
-        self.drop_rate = 0.5
-        self.early_stop_partience = 2
+        self.epochs = 3
+        self.batch_size = 256
+        self.lr = 0.0005
+        self.drop_rate = 0.4
+        self.early_stop_partience = 15
         self.loss_fn = nn.CrossEntropyLoss()
 
 class AutoAugmentationConfig:
     def __init__(self):
-        self.auto_aug_use = False
-        self.policy = "CIFAR10"
+        self.auto_aug_use = True
+        self.policy = "IMAGENET"
 
 class OptimizerConfig:
     def __init__(self):
@@ -46,8 +48,8 @@ class OptimizerConfig:
         rmsprop
         rprop
         '''
-        self.opt = 'adam'
-        self.momentum = 0.8
+        self.opt = 'adamw'
+        self.momentum = 0.85
 
 class SchedulerConfig:
     def __init__(self):
@@ -63,10 +65,10 @@ class SchedulerConfig:
         OneCycle
         Cosine_Warm_Restarts
         '''
-        self.what_scheduler = 'Step'  # 사용할 스케줄러 유형
+        self.what_scheduler = 'Reduce'  # 사용할 스케줄러 유형
         self.scheduler_step_size = 2  # StepLR과 MultiStepLR에서 사용
-        self.scheduler_gamma = 0.1  # StepLR, MultiStepLR, ExponentialLR 등에서 사용
-        self.scheduler_patience = 10  # ReduceLROnPlateau에서 사용
+        self.scheduler_gamma = 0.5  # StepLR, MultiStepLR, ExponentialLR 등에서 사용
+        self.scheduler_patience = 3  # ReduceLROnPlateau에서 사용
 
         # CosineAnnealingLR 관련 설정
         self.T_max = 10  # CosineAnnealingLR에서 사용
