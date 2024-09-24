@@ -20,24 +20,45 @@ if __name__ == "__main__":
                                stratify=train_info['target'], 
                                random_state=42)
     
-    transform_selector = TransformSelector(size=config.model.img_size,
-                                           use_auto=config.auto_augmentation.auto_aug_use,
-                                           auto_policy=config.auto_augmentation.policy)
+    train_transform_list = []
+    valid_transform_list = []
     
-    train_transform = transform_selector.get_transform(is_train=True)
-    val_transform = transform_selector.get_transform(is_train=False)
+    transform_selector = TransformSelector(config.model.img_size,
+                                           config.augmentation.auto_policy)
+    
+    # auto augmentation 적용
+    if config.augmentation.auto_aug_use:
+        transform = transform_selector.get_transform('auto')
+        train_transform_list.append(transform)
+
+    # 반복문을 통해 config.augmentation.augmentations에서 증강 기법을 받아 transform 생성
+    for aug in config.augmentation.augmentations:
+        transform = transform_selector.get_transform(aug)
+        valid_transform= transform_selector.get_transform(aug)
+        
+        # Transform을 리스트에 추가
+        train_transform_list.append(transform)
+        valid_transform_list.append(valid_transform)
+    
+    # val_transform = transform_selector.get_transform('original')
 
     train_loader = create_combined_dataloader(train_df, 
                                      config.data.train_data_dir, 
-                                     transform_selector, 
+                                     train_transform_list, 
                                      config.training.batch_size, 
                                      shuffle=True)
     
-    val_loader = create_dataloader(val_df, 
-                               config.data.train_data_dir, 
-                               val_transform, 
-                               config.training.batch_size, 
-                               shuffle=False)
+    # val_loader = create_dataloader(val_df, 
+    #                            config.data.train_data_dir, 
+    #                            val_transform, 
+    #                            config.training.batch_size, 
+    #                            shuffle=False)
+
+    val_loader = create_combined_dataloader(val_df, 
+                                     config.data.train_data_dir, 
+                                     valid_transform_list, 
+                                     config.training.batch_size, 
+                                     shuffle=False)
     
     # 모델 설정
     model_selector = ModelSelector(config.model.model_name, 
