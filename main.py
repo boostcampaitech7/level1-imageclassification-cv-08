@@ -90,11 +90,11 @@ if __name__ == "__main__":
                       loss_fn=config.training.loss_fn,
                       epochs=config.training.epochs,
                       result_path=config.result_path,
-                      patience=config.training.early_stop_partience
+                      patience=config.training.early_stop_partience,
+                      gradient_accumulation_step = config.training.gradient_accumulation_step
                       )
     
-    print('-'*10 + '학습 시작' + '-'*10)
-    print()
+    print('-'*10 + '학습 시작' + '-'*10 + '\n') 
 
     start_time = time()
 
@@ -104,5 +104,4 @@ if __name__ == "__main__":
 
     train_time = measure_time(start_time, end_time)
 
-    print()
-    print("학습 시간: " + train_time)
+    print("학습 시간: " + train_time + '\n')

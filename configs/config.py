@@ -20,6 +20,7 @@ class ModelConfig:
 class TrainingConfig:
     def __init__(self):
         self.epochs = 10
+        self.gradient_accumulation_step = 4 # 사실상 batch_size는 batch_size * gradient_accumulation_step
         self.batch_size = 256
         self.lr = 0.0005
         self.drop_rate = 0.4
@@ -28,7 +29,7 @@ class TrainingConfig:
 
 class AugmentationConfig:
     def __init__(self):
-        self.auto_aug_use = True
+        self.auto_aug_use = False
         self.auto_policy = "IMAGENET"
         # self.augmentations = ['cutmix','cutout','mixup', 'shear', 'translate']
         self.augmentations = ['cutmix']
