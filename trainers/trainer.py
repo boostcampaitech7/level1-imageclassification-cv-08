@@ -11,7 +11,7 @@ from sklearn.metrics import precision_score, recall_score, f1_score
 class Trainer:
     def __init__(self, model, device,
                  train_loader, val_loader, scheduler,
-                 optimizer, loss_fn, epochs, result_path, patience=7):
+                 optimizer, loss_fn, epochs, result_path, patience=7, gradient_accumulation_step = 1):
         self.model = model
         self.device = device
         self.train_loader = train_loader
@@ -26,6 +26,7 @@ class Trainer:
         self.train_losses = []
         self.val_losses = []
         self.scaler = GradScaler()
+        self.gradient_accumulation_step = gradient_accumulation_step
 
         self.early_stopping = EarlyStopping(patience = patience,
                                             verbose = True,
@@ -39,9 +40,9 @@ class Trainer:
 
         progress_bar = tqdm(self.train_loader, desc='Training', leave=False)
 
-        for images, targets in progress_bar:
+        for i, (images, targets) in enumerate(progress_bar):
             images, targets = images.to(self.device), targets.to(self.device)
-            self.optimizer.zero_grad()
+            
 
             # mixed precision Training
             with autocast():
@@ -49,8 +50,17 @@ class Trainer:
                 loss = self.loss_fn(outputs, targets)
 
             self.scaler.scale(loss).backward()
-            self.scaler.step(self.optimizer)
-            self.scaler.update()
+
+            if (i + 1) % self.gradient_accumulation_step == 0:  # 지정한 누적 단계에 도달하면
+                self.scaler.step(self.optimizer)
+                self.scaler.update()
+                self.optimizer.zero_grad()
+        
+             # 마지막 남은 기울기 처리 (에포크 끝나기 직전에 남은 경우)
+            if (i + 1) == len(self.train_loader):
+                self.scaler.step(self.optimizer)
+                self.scaler.update()
+                self.optimizer.zero_grad()
             
             total_loss += loss.item()
 
