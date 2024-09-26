@@ -114,17 +114,17 @@ project/
 이 모델은 Tesla v100 32GB의 환경에서 작성 및 테스트 되었습니다.
 또 모델 실행에는 다음과 같은 외부 라이브러리가 필요합니다.
 
-pandas==2.1.4
-matplotlib==3.8.4
-seaborn==0.13.2
-Pillow==10.3.0
-numpy==1.26.3
-timm==0.9.16
-albumentations==1.4.4
-tqdm==4.66.1
-scikit-learn==1.4.2
-opencv-python==4.9.0.80
-python==3.10.13
+- pandas==2.1.4
+- matplotlib==3.8.4
+- seaborn==0.13.2
+- Pillow==10.3.0
+- numpy==1.26.3
+- timm==0.9.16
+- albumentations==1.4.4
+- tqdm==4.66.1
+- scikit-learn==1.4.2
+- opencv-python==4.9.0.80
+- python==3.10.13
 
 Install dependencies: `pip install -r requirements.txt`
 
