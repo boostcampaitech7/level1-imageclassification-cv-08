@@ -2,8 +2,6 @@
 # 🏆 Sketch Image Data Classification
 
 ## 🥇 팀 구성원
-<div align="center">
-
 
 <br />
 
