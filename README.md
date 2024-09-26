@@ -3,21 +3,7 @@
 
 ## 🥇 팀 구성원
 <div align="center">
-<table>
-  <tr>
-    <td align="center"><a href="https://github.com/bogeoung"><img src="https://avatars.githubusercontent.com/u/50127209?v=4?s=100" width="100px;" alt=""/><br /><sub><b>김보경</b></sub><br />
-    </td>
-        <td align="center"><a href="https://github.com/SangphilPark"><img src="https://avatars.githubusercontent.com/u/81211140?v=4?s=100" width="100px;" alt=""/><br /><sub><b>박상필</b></sub><br />
-    </td>
-        <td align="center"><a href="https://github.com/LTSGOD"><img src="https://avatars.githubusercontent.com/u/78635028?v=4?s=100" width="100px;" alt=""/><br /><sub><b>이태순</b></sub><br />
-    </td>
-        <td align="center"><a href="https://github.com/d-a-d-a"><img src="https://avatars.githubusercontent.com/u/109848297?v=4?s=100" width="100px;" alt=""/><br /><sub><b>임현명</b></sub><br />
-    </td>
-        <td align="center"><a href="https://github.com/CheonJiEun"><img src="https://avatars.githubusercontent.com/u/53997172?v=4?s=100" width="100px;" alt=""/><br /><sub><b>천지은</b></sub><br />
-    </td>
-  </tr>
-</table>
-</div>
+
 
 <br />
 
