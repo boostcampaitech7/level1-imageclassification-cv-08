@@ -1,107 +1,69 @@
-from configs.config import Config
-from data.data_loader import create_dataloader, TransformSelector, create_combined_dataloader
+from configs.config_manager import ConfigManager
+from trainers.train_runner import Trainer
+from trainers.test_runner import TestRunner
 from models.model_selector import ModelSelector
-from trainers.trainer import Trainer
-import pandas as pd
-from sklearn.model_selection import train_test_split as ttsplit
-from utils.utils import measure_time
-from time import time
+from data.data_loader import create_dataloader
+from data.transform_selector import TransformSelector
+from data.custom_dataset import CustomDataset
 from optimizers.optimizer import OptimizerSelector
 from schedulers.scheduler import SchedulerSelector
-from trainers.test_runner import TestRunner
+import torch
+import torch.nn as nn
+import pandas as pd
+import time
+from utils.utils import measure_time
+from sklearn.model_selection import train_test_split as ttsplit
 
 if __name__ == "__main__":
-    config = Config()
+    config_manager = ConfigManager(config_path="config.yaml")
+    config = config_manager.get_config()
 
-    # 데이터 로드 및 변환 설정
-    train_info = pd.read_csv(config.data.train_info_file)
-
-    train_df, val_df = ttsplit(train_info, test_size=0.2,
-                               stratify=train_info['target'], 
-                               random_state=42)
+    model_selector = ModelSelector(config['model']['model_name'],
+                                   config['model']['num_classes'],
+                                   config['model']['pretrained'],
+                                   config['training']['drop_rate'])
+    model = model_selector.get_model()
+    device = torch.device(config['device'])
     
-    train_transform_list = []
-    valid_transform_list = []
-    
-    transform_selector = TransformSelector(config.model.img_size,
-                                           config.augmentation.auto_policy)
-    
-    # auto augmentation 적용
-    if config.augmentation.auto_aug_use:
-        transform = transform_selector.get_transform('auto')
-        valid_transform= transform_selector.get_transform('auto')
+    train_info = pd.read_csv(config['data']['train_info_file'])
+    train_df, val_df = ttsplit(train_info, test_size=0.2, random_state=42)
 
-        train_transform_list.append(transform)
-        valid_transform_list.append(valid_transform)
+    transform_selector = TransformSelector(size=config['model']['img_size'],
+                                           augment_type=config['augmentation']['augmentation_type'])
 
-    # 반복문을 통해 config.augmentation.augmentations에서 증강 기법을 받아 transform 생성
-    for aug in config.augmentation.augmentations:
-        transform = transform_selector.get_transform(aug)
-        valid_transform= transform_selector.get_transform(aug)
-        
-        # Transform을 리스트에 추가
-        train_transform_list.append(transform)
-        valid_transform_list.append(valid_transform)
-    
-    # val_transform = transform_selector.get_transform('original')
+    train_dataset = CustomDataset(root_dir=config['data']['train_data_dir'], info_df=train_df, transform=transform_selector.get_transform(is_train=True))
+    val_dataset = CustomDataset(root_dir=config['data']['train_data_dir'], info_df=val_df, transform=transform_selector.get_transform(is_train=False))
 
-    train_loader = create_combined_dataloader(train_df, 
-                                     config.data.train_data_dir, 
-                                     train_transform_list, 
-                                     config.training.batch_size, 
-                                     shuffle=True)
-    
-    # val_loader = create_dataloader(val_df, 
-    #                            config.data.train_data_dir, 
-    #                            val_transform, 
-    #                            config.training.batch_size, 
-    #                            shuffle=False)
+    train_loader = create_dataloader(train_dataset, batch_size=config['training']['batch_size'], shuffle=True)
+    val_loader = create_dataloader(val_dataset, batch_size=config['training']['batch_size'], shuffle=False)
 
-    val_loader = create_combined_dataloader(val_df, 
-                                     config.data.train_data_dir, 
-                                     valid_transform_list, 
-                                     config.training.batch_size, 
-                                     shuffle=False)
-    
-    # 모델 설정
-    model_selector = ModelSelector(config.model.model_name, 
-                                   config.model.num_classes, 
-                                   pretrained=config.model.pretrained,
-                                   drop_rate=config.training.drop_rate)
-    
-    model = model_selector.get_model().to(config.device)
+    optimizer_selector = OptimizerSelector(model=model, config=config)
+    optimizer = optimizer_selector.get_optimizer()
 
-    # 옵티마이저와 스케줄러 설정
-    opt_selector = OptimizerSelector(model, 
-                                     opt_name=config.optimizer.opt, 
-                                     lr=config.training.lr)
-    optimizer = opt_selector.get_optimizer()
-
-    scheduler_selector = SchedulerSelector(optimizer = optimizer)
+    scheduler_selector = SchedulerSelector(optimizer=optimizer, config=config)
     scheduler = scheduler_selector.get_scheduler()
 
-    # 학습과 추론 로직 연결
-    trainer = Trainer(model=model, 
-                      device=config.device,
-                      train_loader=train_loader, 
-                      val_loader=val_loader, 
-                      optimizer=optimizer, 
-                      scheduler=scheduler, 
-                      loss_fn=config.training.loss_fn,
-                      epochs=config.training.epochs,
-                      result_path=config.result_path,
-                      patience=config.training.early_stop_partience,
-                      gradient_accumulation_step = config.training.gradient_accumulation_step
-                      )
+    loss_fn = nn.CrossEntropyLoss()
+
+    trainer = Trainer(model=model,
+                      device=device,
+                      train_loader=train_loader,
+                      val_loader=val_loader,
+                      optimizer=optimizer,
+                      scheduler=scheduler,
+                      loss_fn=loss_fn,
+                      config=config)
     
-    print('-'*10 + '학습 시작' + '-'*10 + '\n') 
+    print("Train 시작")
+    start_time = time.time()
+    trainer.train(use_cutmix=config['training'].get('use_cutmix', False))
+    end_time = time.time()
 
-    start_time = time()
+    print(measure_time(start_time, end_time))
 
-    trainer.train()
+    print("Test 시작")
+    test_runner = TestRunner(model, config, device=device)
+    test_runner.load_model()
+    test_runner.run_test()
 
-    end_time = time()
-
-    train_time = measure_time(start_time, end_time)
-
-    print("학습 시간: " + train_time + '\n')
+    print("모든 작업 완료!")

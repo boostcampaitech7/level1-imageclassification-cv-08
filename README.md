@@ -54,66 +54,80 @@ Computer Vision에서는 다양한 형태의 이미지 데이터가 활용되고
 ## 🥉 프로젝트 구조
 ```
 project/
-├── .gitignore
-├── Augmentation
-│    ├─AutoAugGray.py
-│    ├─AutoAugRGB.py
-│    └─test
-├── configs
-│    └─config.py
-├── data
-│    └─data_loader.py
-├── models
-│    └─model_selector.py
-├── optimizers
-│    └─optimizer.py
-├── schedulers
-│    └─scheduler.py
-├── trainers
-│    ├─inference.py
-│    ├─loss.py
-│    ├─test_runner.py
-│    └─trainer.py
-├── utils
-│    └─utils.py
-└── main.py
+|   config.yaml
+|   main.py
+|   README.md
+|   requirements.txt
+|   test.py
+|   train.py
+|
++---configs
+|       config_manager.py
+|
++---data
+|       custom_dataset.py
+|       cutmix.py
+|       cutmix_loader.py
+|       data_loader.py
+|       transform_selector.py
+|
++---EDA
+|       Level_1_CV_08_EDA.pptx
+|
++---models
+|       model_selector.py
+|
++---optimizers
+|       optimizer.py
+|
++---schedulers
+|       customCosineWR.py
+|       scheduler.py
+|
++---trainers
+|       inference_runner.py
+|       loss.py
+|       metric.py
+|       test_runner.py
+|       train_runner.py
+|
+\---utils
+        utils.py
 ```
 
-#### 1) `Augmentation`
-- 데이터셋을 읽고 RGB로 전환하거나 Grayscale로 전환하는 전처리를 진행하는 클래스를 구현
-#### 2) `configs`
-- 이미지 분류에 사용될 수 있는 다양한 hyperparameter들을 설정
-- Model, Training, Augmentation, Optimizer, Scheduler 설정 구현
-#### 3) `data`
-- 데이터를 받아 초기 전처리를 처리한 후 다양한 증강 기법을 정의하는 파일 
-- autoaugment, cutout, cutmix, mixup, translate, shear 구현
-#### 4) `models`
-- Timm Library로부터 데이터를 받아 연산을 처리한 후 결과 값을 내는 Model 클래스를 구현하는 파일 
-#### 5) `optimizers`
-- 학습에 사용할 다양한 Optimizer들을 정의한 파일
-- adam, SGD, adadelta, adagrad, adamw, sparseadam, adamax, 등 구현
-#### 6) `schedulers`
-- Learning rate를 조절할 다양한 Scheduler들을 정의한 파일
-- Step, Reduce, Cosine, Multistep, Lambda, Exponential, Cyclic, Onecycle 구현
-#### 7) `inference.py`
-- 학습 완료된 모델을 통해 test set 에 대한 예측 값을 구하고 이를 .csv 형식으로 저장하는 파일 
-#### 8) `loss.py`
-- 이미지 분류에 사용될 수 있는 다양한 Loss 들을 정의한 파일
-- Cross Entropy, Focal Loss, Label Smoothing Loss, Asymmetric Loss 구현
-#### 9) `trainer.py`
-- 학습을 진행하고 검증을 거쳐서 학습 데이터 정확도를 내놓는 과정을 정의한 파일
-#### 10) `utils.py`
-- 학습을 진행하고 검증을 거쳐서 학습 데이터 정확도에 따라 early stopping을 정의하고 체크포인트를 생성해 loss 그래프를 출력하는 파일
-#### 11) `main.py`
-- 앞에 정의된 파일들을 Config를 기반으로 전체적으로 실행시켜서 학습을 진행하고 결과를 내놓는 파일
+### 1) `configs`
+- 설정 파일을 관리하는 폴더
+- `config_manager.py`는 `config.yaml`을 불러와 학습 및 추론에 필요한 설정을 관리합니다.
+### 2) `datas`
+- 데이터 로딩 및 전처리를 담당하는 폴더
+- `custom_dataset.py`에서는 커스텀 데이터셋을 정의하며, `cutmix.py`와 같은 데이터 증강 기법도 포함되어 있습니다.
+### 3) `models`
+- 모델 선택 및 초기화 로직을 정의하는 폴더
+- `model_selector.py`에서 `timm 라이브러리`를 통해 다양한 사전 학습된 모델을 선택하고 사용할 수 있습니다.
+### 4) `optimizers`
+- 학습 중 Learning Rate 조절을 위한 스케줄러를 정의하는 폴더
+- `optimizer.py`에서 `Adam`, `SGD`, `AdamW` 옵티마이저를 설정할 수 있습니다.
+### 5) `schedulers`
+- 학습 중 Learning Rate 조절을 위한 스케줄러를 정의하는 폴더
+- `scheduler.py`는 다양한 학습률 조절 방법을 제공합니다.
+### 6) `trainers`
+- 학습과 추론에 필요한 주요 로직을 포함하는 폴더
+- `train_runner.py`는 학습을 진행하는 클래스이며, `test_runner.py`는 모델 평가를 수행합니다.
+### 7) `utils`
+- 학습과 테스트 과정에서 사용되는 유틸리티 함수들을 정의한 폴더
+- `utils.py`는 로깅, 체크포인트 저장 등 다양한 기능을 제공합니다.
 
 <br />
 
 ## ⚙️ 설치
 
-#### Dependencies
+### Dependencies
 이 모델은 Tesla v100 32GB의 환경에서 작성 및 테스트 되었습니다.
 또 모델 실행에는 다음과 같은 외부 라이브러리가 필요합니다.
+
+```bash
+pip install -r requirements.txt
+```
 
 - pandas==2.1.4
 - matplotlib==3.8.4
@@ -127,15 +141,33 @@ project/
 - opencv-python==4.9.0.80
 - python==3.10.13
 
-Install dependencies: `pip install -r requirements.txt`
-
 <br />
 
 ## 🚀 빠른 시작
-#### Train
-`python main.py`
+### Main
+```bash
+python3 main.py
+```
+- `config.yaml` 파일을 수정한 후, 해당 명령어를 사용하여 학습과 추론을 모두 진행할 수 있습니다. 
+### Train
+```bash
+python3 train.py --config_path ./config.yaml --epochs 10 --batch_size 32 --lr 0.0005 --use_cutmix
+```
+- `--config_path` : 설정 파일 경로 (기본값 : config.yaml)
+- `--split_ratio` : 학습/검증 데이터 분할 비율 (기본값 : 0.2)
+- `--use_cutmix` : CutMix 사용시 플래그 추가
+- `--epochs` : 학습할 에폭 수 (기본값 : 5)
+- `--lr` : 학습률 설정
+- `--batch_size` : 배치 크기 설정
+- `--img_size` : Resize 이미지 크기
+- `--model_name` : 사용할 모델 이름 (timm모델 사용, 기본값 : resnet50)
 
-이 외 다양한 학습 방법은 `🥉프로젝트 구조/4) models`를 참고해주세요!
+### Test
+```bash
+python3 test.py --model_name resnet50 --file_path ./best_model.pt
+```
+- `--model_name` : 모델 아키텍쳐 이름 (필수)
+- `--file_path` : 저장된 모델 파일 경로 (필수)
 
 <br />
 
