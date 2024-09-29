@@ -1,55 +1,24 @@
-import torch.optim
+import torch.optim as optim
 
 class OptimizerSelector:
-    def __init__(self, model, opt_name, lr, momentum=0.9, weight_decay=1e-5, alpha=0.99, rho=0.9, eps=1e-08, lambd=0.001):
-        """
-        model: 모델 객체
-        opt_name: 사용할 옵티마이저 이름
-        lr: 학습률 (Learning rate)
-        momentum: 모멘텀 (옵티마이저에 따라 필요)
-        weight_decay: 가중치 감쇠 (AdamW 등에서 필요) (1e-5 ~ 1e-4)
-        alpha, rho, eps, lambd: 특정 옵티마이저에 필요한 추가 하이퍼파라미터
-        """
+    def __init__(self, model, config):
         self.model = model
-        self.opt_name = opt_name
-        self.lr = lr
-        self.momentum = momentum
-        self.weight_decay = weight_decay
-        self.alpha = alpha
-        self.rho = rho
-        self.eps = eps
-        self.lambd = lambd
-        self.optimizer = self._select_optimizer()
-
-    def _select_optimizer(self):
-        if self.opt_name == 'adam':
-            return torch.optim.Adam(self.model.parameters(), lr=self.lr)
-        elif self.opt_name == 'SGD':
-            return torch.optim.SGD(self.model.parameters(), lr=self.lr, momentum=self.momentum)
-        elif self.opt_name == 'adadelta':
-            return torch.optim.Adadelta(self.model.parameters(), lr=self.lr, rho=self.rho, eps=self.eps)
-        elif self.opt_name == 'adagrad':
-            return torch.optim.Adagrad(self.model.parameters(), lr=self.lr, eps=self.eps, weight_decay=self.weight_decay)
-        elif self.opt_name == 'adamw':
-            return torch.optim.AdamW(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-        elif self.opt_name == 'sparseadam':
-            return torch.optim.SparseAdam(self.model.parameters(), lr=self.lr, eps=self.eps)
-        elif self.opt_name == 'adamax':
-            return torch.optim.Adamax(self.model.parameters(), lr=self.lr, eps=self.eps, weight_decay=self.weight_decay)
-        elif self.opt_name == 'asgd':
-            return torch.optim.ASGD(self.model.parameters(), lr=self.lr, lambd=self.lambd, alpha=self.alpha)
-        elif self.opt_name == 'lbfgs':
-            return torch.optim.LBFGS(self.model.parameters(), lr=self.lr)
-        elif self.opt_name == 'nadam':
-            return torch.optim.NAdam(self.model.parameters(), lr=self.lr, eps=self.eps, weight_decay=self.weight_decay)
-        elif self.opt_name == 'radam':
-            return torch.optim.RAdam(self.model.parameters(), lr=self.lr, eps=self.eps, weight_decay=self.weight_decay)
-        elif self.opt_name == 'rmsprop':
-            return torch.optim.RMSprop(self.model.parameters(), lr=self.lr, momentum=self.momentum, alpha=self.alpha)
-        elif self.opt_name == 'rprop':
-            return torch.optim.Rprop(self.model.parameters(), lr=self.lr)
-        else:
-            raise ValueError(f"Optimizer '{self.opt_name}' is not supported.")
+        self.config = config
+        self.lr = config['training'].get('lr', 0.001)
+        self.momentum = config['optimizer'].get('momentum', 0.9)
+        self.weight_decay = config.get('weight_decay', 0.0001)
+        self.betas = config.get('betas', (0.9, 0.999))
 
     def get_optimizer(self):
-        return self.optimizer
+        """설정에 맞는 옵티마이저를 반환"""
+        optimizer_dict = {
+            'adam': lambda: optim.Adam(self.model.parameters(), lr=self.lr),
+            'SGD': lambda: optim.SGD(self.model.parameters(), lr=self.lr, momentum=self.momentum, weight_decay=self.weight_decay),
+            'adamw': lambda: optim.AdamW(self.model.parameters(), lr=self.lr, betas=self.betas, weight_decay=self.weight_decay),
+        }
+
+        opt_name = self.config['optimizer'].get('opt', 'adamw')
+        if opt_name not in optimizer_dict:
+            raise ValueError(f"지원되지 않는 옵티마이저: {opt_name}")
+
+        return optimizer_dict[opt_name]()

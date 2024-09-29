@@ -1,0 +1,48 @@
+device: cuda
+result_path: ./result
+
+data:
+  train_data_dir: ./train_data/train
+  train_info_file: ./train_data/train_sample.csv
+  test_data_dir: ./train_data/test
+  test_info_file: ./train_data/test_df.csv
+
+model:
+  model_name: resnet34
+  pretrained: true
+  num_classes: 500
+  img_size: 224
+
+training:
+  epochs: 1
+  batch_size: 64
+  lr: 0.005
+  drop_rate: 0.3
+  early_stop_patience: 7
+
+augmentation:
+  augmentation_type: custom
+  policy: CIFAL10
+
+optimizer:
+  opt: adamw
+  momentum: 0.9
+
+scheduler:
+  what_scheduler: Reduce
+  scheduler_step_size: 2
+  scheduler_gamma: 0.5
+  scheduler_patience: 3
+  T_max: 10
+  milestones: [30, 80]
+  lr_lambda: 0.95
+  base_lr: 0.0001
+  total_steps: 1000
+  T_0: 10
+  T_mult: 2
+  first_cycle_steps: 20
+  cycle_mult: 1.0
+  max_lr: 0.005
+  min_lr: 0.00005
+  warmup_steps: 5
+  gamma: 0.9

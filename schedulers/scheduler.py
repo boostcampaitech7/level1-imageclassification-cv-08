@@ -1,49 +1,37 @@
-import torch
-from configs.config import Config
+import torch.optim.lr_scheduler as lr_scheduler
+from .customCosineWR import CosineAnnealingWarmupRestarts
 
 class SchedulerSelector:
-    def __init__(self, optimizer):
-        self.config = Config().scheduler
+    def __init__(self, optimizer, config):
         self.optimizer = optimizer
-        self.scheduler = self._get_scheduler()
+        self.config = config['scheduler']
 
-    def _get_scheduler(self):
-        """스케줄러 선택 로직"""
-        if self.config.what_scheduler == 'Step':
-            return torch.optim.lr_scheduler.StepLR(self.optimizer, 
-                                                   step_size=self.config.scheduler_step_size, 
-                                                   gamma=self.config.scheduler_gamma)
-        elif self.config.what_scheduler == 'Reduce':
-            return torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, 
-                                                              mode='min', 
-                                                              factor=0.1, 
-                                                              patience=self.config.scheduler_patience)
-        elif self.config.what_scheduler == 'Cosine':
-            return torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, 
-                                                              T_max=self.config.T_max)
-        elif self.config.what_scheduler == 'Multistep':
-            return torch.optim.lr_scheduler.MultiStepLR(self.optimizer, 
-                                                        milestones=self.config.milestones, 
-                                                        gamma=self.config.scheduler_gamma)
-        elif self.config.what_scheduler == 'Lambda':
-            return torch.optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.config.lr_lambda)
-        elif self.config.what_scheduler == 'Exponential':
-            return torch.optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=self.config.scheduler_gamma)
-        elif self.config.what_scheduler == 'Cyclic':
-            return torch.optim.lr_scheduler.CyclicLR(self.optimizer, 
-                                                     base_lr=self.config.base_lr, 
-                                                     max_lr=self.config.max_lr)
-        elif self.config.what_scheduler == 'Onecycle':
-            return torch.optim.lr_scheduler.OneCycleLR(self.optimizer, 
-                                                       max_lr=self.config.max_lr, 
-                                                       total_steps=self.config.total_steps)
-        elif self.config.what_scheduler == 'Cosine_Warm_Restarts':
-            return torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(self.optimizer, 
-                                                                        T_0=self.config.T_0, 
-                                                                        T_mult=self.config.T_mult)
-        else:
-            raise ValueError(f"알 수 없는 스케줄러: {self.config.What_scheduler}")
-    
     def get_scheduler(self):
-        """외부에서 스케줄러 가져오기"""
-        return self.scheduler
+        scheduler_dict = {
+            'Step': lambda: lr_scheduler.StepLR(self.optimizer,
+                                                step_size=self.config['scheduler_step_size'],
+                                                gamma=self.config['scheduler_gamma']),
+            'Reduce': lambda: lr_scheduler.ReduceLROnPlateau(self.optimizer, 
+                                                             mode='min', 
+                                                             patience=self.config['scheduler_patience'],
+                                                             factor=self.config['scheduler_gamma']),
+            'Cosine': lambda: lr_scheduler.CosineAnnealingLR(self.optimizer, 
+                                                             T_max=self.config['T_max']),
+            'Cosine_Warm_Restarts': lambda: lr_scheduler.CosineAnnealingWarmRestarts(self.optimizer, 
+                                                                                     T_0=self.config['T_0'], 
+                                                                                     T_mult=self.config['T_mult']),
+            'Custom_Cosine_Warm_Restarts': lambda: CosineAnnealingWarmupRestarts(self.optimizer,
+                                                                                first_cycle_steps=self.config['first_cycle_steps'],
+                                                                                cycle_mult=self.config['cycle_mult'],
+                                                                                max_lr=self.config['max_lr'],
+                                                                                min_lr=self.config['min_lr'],
+                                                                                warmup_steps=self.config['warmup_steps'],
+                                                                                gamma=self.config['gamma']
+                                                                            ) 
+                                                                        }   
+
+        sched_name = self.config['what_scheduler']
+        if sched_name not in scheduler_dict:
+            raise ValueError(f"지원되지 않는 스케줄러: {sched_name}")
+
+        return scheduler_dict[sched_name]()
