@@ -177,4 +177,4 @@ python3 test.py --model_name resnet50 --file_path ./best_model.pt
 <br />
 
 ## 🏅 Wrap-Up Report   
-### [ Wrap-Up Report 👑](https://github.com/boostcampaitech7/level1-imageclassification-cv-08/blob/main/CV%EA%B8%B0%EC%B4%88%EB%8C%80%ED%9A%8C_CV_%ED%8C%80%20%EB%A6%AC%ED%8F%AC%ED%8A%B8(08%EC%A1%B0).pdf)
+### [ Wrap-Up Report 👑](https://github.com/boostcampaitech7/level1-imageclassification-cv-08/blob/main/warm_up_report/CV%EA%B8%B0%EC%B4%88%EB%8C%80%ED%9A%8C_CV_%ED%8C%80%20%EB%A6%AC%ED%8F%AC%ED%8A%B8(08%EC%A1%B0).pdf)
