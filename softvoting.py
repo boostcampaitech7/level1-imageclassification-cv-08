@@ -3,12 +3,11 @@ import argparse
 import torch.nn.functional as F
 import os
 from configs.config_manager import ConfigManager
-from configs.config import Config
 from trainers.test_runner import TestRunner
 import pandas as pd
 from data.custom_dataset import CustomDataset
 from data.data_loader import create_dataloader
-from trainers.inference import inference_preds
+from trainers.inference_runner import inference_preds
 from data.transform_selector import TransformSelector
 from models.model_selector import ModelSelector
 from data.custom_dataset import CustomDataset
