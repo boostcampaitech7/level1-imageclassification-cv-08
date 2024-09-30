@@ -63,7 +63,7 @@ def softvoting(model_names, model_paths, config):
     test_info['target'] = final_predictions.argmax(axis=1)
     test_info = test_info.reset_index().rename(columns={"index": "ID"})
 
-    output_path = os.path.join(config.result_path, f"ensemble_{len(model_names)}_output.csv")
+    output_path = os.path.join(config['result_path'], f"ensemble_{len(model_names)}_output.csv")
     test_info.to_csv(output_path, index=False)
 
     print('-' * 10 + '소프트 보팅 완료' + '-' * 10)
