@@ -47,3 +47,7 @@ class TestRunner:
         
         print('-'*10 + '추론 완료' + '-'*10)
         print(f"{self.config['model']['model_name']}_{self.config['training']['epochs']}_output.csv")
+
+    def load_model_en(self,path):
+            self.model.load_state_dict(torch.load(path))
+            print(f"모델 로드 완료: {path}")
